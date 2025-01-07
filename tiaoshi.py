@@ -2,6 +2,20 @@
 import inspect
 import pdb
 import os
+import sys
+import tty
+import termios
+import select
+
+def clear_input_buffer():
+    fd = sys.stdin.fileno()
+    old_settings = termios.tcgetattr(fd)
+    try:
+        tty.setraw(fd)  # 设置为原始模式
+        while select.select([sys.stdin], [], [], 0)[0]:
+            sys.stdin.read(1)  # 读取并丢弃输入
+    finally:
+        termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)  # 恢复设置
 
 def get_vname():
     frame = inspect.currentframe()  # 当前函数的栈帧
@@ -28,6 +42,10 @@ def print_caller_file_and_line(depth=2):
     print(f"调试文件: {caller_file}, 所在行号: {caller_line}")
 
 def tiaoshi(x=None, exit0=True, details=False, mulp=False, get_name=True, use_debug=True):
+	# 无法使用全局变量，仍需修改
+	# if first_call:
+	# 	clear_input_buffer()
+	# 	first_call = False
 	if not use_debug:
 		return
 	if get_name:
@@ -35,17 +53,19 @@ def tiaoshi(x=None, exit0=True, details=False, mulp=False, get_name=True, use_de
 	print(type(x))
 	if isinstance(x,str):
 		print(x)
-		t = input('continue?(stop or else)')
-		if t == 'stop':
-			exit(0)
+		if not mulp:
+			t = input('continue?(stop or else)')
+			if t == 'stop':
+				exit(0)
 		return
 	try:
 		x[0]
 	except:
 		print(x)
-		t = input('continue?(stop or else)')
-		if t == 'stop':
-			exit(0)
+		if not mulp:
+			t = input('continue?(stop or else)')
+			if t == 'stop':
+				exit(0)
 		if exit0:
 			print_caller_file_and_line(2)
 			exit(0)
@@ -56,27 +76,31 @@ def tiaoshi(x=None, exit0=True, details=False, mulp=False, get_name=True, use_de
 	except:
 		try:
 			print(len(x))
-			if isinstance(x,list):
-				if not all(type(y) == type(x[0]) for y in x):
-					if input('Customized Warning: the list has different data types! show them all?(y/n)') in ['y','Y']:
-						for ele in x:
-							print(type(ele))
-				printlen = input("print how much elements' shape? (default 0) ")
-				if printlen.isdigit():
-					for idx in range(min(len(x),int(printlen))):
-						try:
-							print(x[idx].shape)
-						except:
-							print(f"can't get x[{idx}] shape,  x[{idx}] has type: {type(x[idx])}")
-							t = input('continue?(stop or else)')
-							if t == 'stop':
-								exit(0)
+			if not mulp:
+				if isinstance(x,list):
+					if not all(type(y) == type(x[0]) for y in x):
+						if input('Customized Warning: the list has different data types! show them all?(y/n)') in ['y','Y']:
+							for ele in x:
+								print(type(ele))
+					printlen = input("print how much elements' shape? (default 0) ")
+					if printlen.isdigit():
+						for idx in range(min(len(x),int(printlen))):
+							try:
+								print(x[idx].shape)
+							except:
+								print(f"can't get x[{idx}] shape,  x[{idx}] has type: {type(x[idx])}")
+								t = input('continue?(stop or else)')
+								if t == 'stop':
+									exit(0)
 		except:
 			print("can't get shape or len")
 	if not mulp:
 		t = input('show details?(y/n)')
 		if t == 'pdb':
-			pdb.set_trace()
+			try:
+				pdb.set_trace()  # 设置断点
+			except:
+				pass
 		elif t == 'stop':
 			exit(0)
 		elif t in ['y', 'Y']:
