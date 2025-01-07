@@ -7,15 +7,15 @@ import tty
 import termios
 import select
 
-def clear_input_buffer():
-    fd = sys.stdin.fileno()
-    old_settings = termios.tcgetattr(fd)
-    try:
-        tty.setraw(fd)  # 设置为原始模式
-        while select.select([sys.stdin], [], [], 0)[0]:
-            sys.stdin.read(1)  # 读取并丢弃输入
-    finally:
-        termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)  # 恢复设置
+# def clear_input_buffer():
+#     fd = sys.stdin.fileno()
+#     old_settings = termios.tcgetattr(fd)
+#     try:
+#         tty.setraw(fd)  # 设置为原始模式
+#         while select.select([sys.stdin], [], [], 0)[0]:
+#             sys.stdin.read(1)  # 读取并丢弃输入
+#     finally:
+#         termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)  # 恢复设置
 
 def get_vname():
     frame = inspect.currentframe()  # 当前函数的栈帧
