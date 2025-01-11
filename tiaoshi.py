@@ -47,7 +47,7 @@ def tiaoshi(x=None, exit0=True, details=False, mulp=False, get_name=True, use_de
             print(ks)
             t = input('show dict details?(y/n) ')
             while t in ['y','Y']:
-                tt = input('which key to visit?(input key name or index) ')
+                tt = input(f'which key to visit?(input key name or index[0-{len(ks)-1}]) ')
                 try:
                     tiaoshi(x[tt],exit0=False)
                 except:
