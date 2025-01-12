@@ -1,11 +1,15 @@
-############################################################
 import inspect
 import pdb
 import os
 
-def get_vname():
+def get_vname(depth=2):
+    print_len_depth = depth+1
     frame = inspect.currentframe()  # 当前函数的栈帧
-    call_frame = frame.f_back.f_back  # 获取调用 `t` 的上一级栈帧
+    call_frame = frame  # 获取调用 `t` 的上一级栈帧
+    while depth:
+        call_frame = call_frame.f_back
+        depth -= 1
+
     call_code = inspect.getframeinfo(call_frame).code_context[0].strip()  # 获取调用代码并去除空白
     arg_str = call_code.split('(')[1].split(')')[0]  # 提取括号中的所有参数
     first_arg = arg_str.split(',')[0].strip()  # 提取第一个参数
@@ -13,10 +17,10 @@ def get_vname():
     # 如果直接传递的是变量
     if first_arg.isidentifier():
         print(f"Variable name: {first_arg}", end='-'*10)
-        print_caller_file_and_line(3)
+        print_caller_file_and_line(print_len_depth)
     else:
         print("No variable name found.", end='-'*10)
-        print_caller_file_and_line(3)
+        print_caller_file_and_line(print_len_depth)
  
 def print_caller_file_and_line(depth=2):
     # 获取调用栈信息
@@ -27,11 +31,20 @@ def print_caller_file_and_line(depth=2):
     caller_line = caller_frame.lineno  # 调用者的行号
     print(f"调试文件: {caller_file}, 所在行号: {caller_line}")
 
-def tiaoshi(x=None, exit0=True, details=False, mulp=False, get_name=True, use_debug=True):
+def tiaoshi(x=None, exit0=True, details=False, mulp=False, get_name=True, use_debug=True, depth=2):
+    """
+    args:
+        x: the element to be visit
+        details: if True, default show detail
+        mulp: set true when processing multi-process task
+        get_name: get current variable name if avaliable
+        use_debug: if False, skip
+        depth: set 2 when use directly, 3 when repack the func
+    """
     if not use_debug:
         return
     if get_name:
-        get_vname()
+        get_vname(depth)
     print(type(x))
     if isinstance(x,str):
         print(x)
@@ -66,7 +79,7 @@ def tiaoshi(x=None, exit0=True, details=False, mulp=False, get_name=True, use_de
             if t == 'stop':
                 exit(0)
             if exit0:
-                print_caller_file_and_line(2)
+                print_caller_file_and_line(depth)
                 exit(0)
             else:
                 return
@@ -117,6 +130,5 @@ def tiaoshi(x=None, exit0=True, details=False, mulp=False, get_name=True, use_de
             print(f"{'*'*10}x{set(visit_remember)} has been visited{'*'*10}")
             deep_visit = input('show details for sub elements?(y/n)')
     if exit0:
-        print_caller_file_and_line(2)
+        print_caller_file_and_line(depth)
         exit(0)
-#############################################################
